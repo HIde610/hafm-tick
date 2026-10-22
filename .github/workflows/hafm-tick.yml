@@ -1,0 +1,19 @@
+# HAFM 3.0 自動ペーパー売買の合図（5分ごと）。実際の注文は出さない。
+# 置き場所：リポジトリの .github/workflows/hafm-tick.yml
+# 必要な Secret：HAFM_DAYTRADE_SECRET（HAFM本番の DAYTRADE_CRON_SECRET と同じ値）
+name: HAFM daytrade tick
+on:
+  schedule:
+    - cron: "*/5 0-6 * * 1-5"    # 日本株 9:00〜15:59（日本時間）
+    - cron: "*/5 13-21 * * 1-5"  # 米国株 22:00〜翌6:59（日本時間。夏時間・冬時間の両方を含む）
+  workflow_dispatch: {}
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: HAFMに合図を送る
+        run: |
+          curl -fsS --max-time 100 \
+            -H "Authorization: Bearer ${{ secrets.HAFM_DAYTRADE_SECRET }}" \
+            https://hide-ai-fund-manager.vercel.app/api/cron/daytrade
